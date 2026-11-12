@@ -1,0 +1,22 @@
+{
+  "name": "squarenaut",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "test": "vitest run",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vitest": "^5.1.0"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.78.0",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.6"
+  }
+}

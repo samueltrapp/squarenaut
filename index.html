@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Squarenaut</title>
+  </head>
+  <body>
+    <main class="app">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">A tiny physics puzzle</p>
+          <h1>Squarenaut</h1>
+        </div>
+        <p class="launch-counter">Launches <strong id="launch-count">0</strong></p>
+      </header>
+
+      <div class="game-layout">
+        <section class="game-panel panel" aria-label="Game">
+          <div class="canvas-frame">
+            <canvas
+              id="game"
+              width="960"
+              height="540"
+              aria-label="Game area. Click a tile to edit its properties, or empty space for air properties."
+            >
+              Your browser does not support canvas.
+            </canvas>
+          </div>
+          <div class="game-footer">
+            <p id="game-status" role="status" aria-live="polite">Ready to launch.</p>
+            <div class="game-actions">
+              <button id="launch" type="button">Launch</button>
+              <button id="cancel" class="secondary-button" type="button" disabled>Cancel</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="control-panel panel">
+          <div>
+            <p class="eyebrow">Physics registry</p>
+            <h2>Selected properties</h2>
+            <p class="panel-intro">
+              Click a tile to edit its connected group, or empty space to edit global air.
+            </p>
+          </div>
+          <div id="physics-controls" class="physics-controls"></div>
+          <p class="legend-heading">Tiles</p>
+          <ul class="tile-legend">
+            <li><span class="swatch platform-swatch"></span>Platform</li>
+            <li><span class="swatch water-swatch"></span>Water</li>
+            <li><span class="swatch goal-swatch"></span>Goal</li>
+            <li><span class="swatch hazard-swatch"></span>Hazard</li>
+          </ul>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
