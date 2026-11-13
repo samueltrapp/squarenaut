@@ -112,7 +112,22 @@ const definitions: TileType[] = [
     id: "water",
     label: "Water",
     color: "#3189b8",
-    properties: {},
+    properties: {
+      viscosity: {
+        label: "Viscosity (drag)",
+        min: 0,
+        max: 8,
+        step: 0.1,
+        default: 2.4,
+      },
+      buoyancy: {
+        label: "Buoyancy (upward acceleration)",
+        min: 0,
+        max: 1800,
+        step: 25,
+        default: 600,
+      },
+    },
   },
   {
     id: "goal",

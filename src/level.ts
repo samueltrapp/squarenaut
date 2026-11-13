@@ -1,11 +1,14 @@
-import type { Cell, TileInstance } from "./tiles";
+import defaultLevelData from '../levels/default.json';
+import { loadLevel, type LevelDefinition } from './level-format';
+import type { Cell, TileInstance } from './tiles';
 
-export const GRID_WIDTH = 30;
-export const GRID_HEIGHT = 20;
+export const defaultLevel: LevelDefinition = loadLevel(defaultLevelData);
+export const GRID_WIDTH = defaultLevel.grid.width;
+export const GRID_HEIGHT = defaultLevel.grid.height;
 export const TILE_SIZE = 48;
 export const GRID_TOP = 6;
 
-export const startCell: Cell = { x: 1, y: 1 };
+export const startCell: Cell = defaultLevel.start;
 
 export function fitGridToViewport(
   viewportWidth: number,
@@ -24,21 +27,7 @@ export function fitGridToViewport(
   };
 }
 
-function platformRow(startX: number, endX: number, y: number): TileInstance[] {
-  return Array.from({ length: endX - startX + 1 }, (_, index) => ({
-    x: startX + index,
-    y,
-    typeId: "platform",
-  }));
-}
-
 export const levelTiles: TileInstance[] = [
-  ...platformRow(0, 6, 3),
-  ...platformRow(8, 19, 10),
-  ...platformRow(2, 4, 5),
-  ...platformRow(6, 8, 5),
-  ...platformRow(11, 13, 6),
-  { x: 9, y: 9, typeId: "water" },
-  { x: 10, y: 5, typeId: "hazard" },
-  { x: 17, y: 9, typeId: "goal" },
+  ...defaultLevel.tiles,
+  { ...defaultLevel.goal, typeId: 'goal' },
 ];

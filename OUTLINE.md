@@ -1,12 +1,13 @@
 # Squarenaut: Build Outline
 
-**Current state:** Phase 1 provides a playable hardcoded level with selectable tile-group and global air properties.
+**Current state:** Phases 1 and 2 are complete. The editor can playtest a draft in the game, and the Daily button loads dated levels when available without changing the draft.
 
 ## Resolved Decisions
 
 - **Water** is a medium that replaces Air in its cells. The block passes through it with modified behavior (viscosity and buoyancy), rather than colliding with it.
 - The canvas has a fixed 960×540 viewport; the grid scales uniformly to fit it.
 - Global Air controls are gravity and launch velocity; there is no global time scale.
+- Water buoyancy is an upward acceleration that offsets gravity; when it exceeds gravity, the block accelerates upward. Water viscosity exponentially damps velocity.
 
 ## Phase 0: Setup
 
@@ -43,17 +44,17 @@
    - Auto-generate sliders from the selected type's property schema.
    - Adding a type should require no UI code.
 
-## Phase 2: Content and Remaining Tile Types
+## Phase 2: Content and Remaining Tile Types (complete)
 
-8. **Level format and loader**
+8. **Level format and loader** (complete)
    - Define a JSON schema for grid, tiles, start, and goal.
 
-9. **Level editor**
-   - A separate page with a grid, tile palette, paint/erase, and load/save/export JSON.
+9. **Level editor** (complete)
+   - A separate page with a grid, tile palette, paint/erase, load/save/export JSON, and a Test button. Editor drafts are preserved in session storage when navigating to the game.
 
-10. **Water tile**
+10. **Water tile** (complete)
     - A non-solid medium that replaces Air in its cells.
-    - Properties: viscosity (drag) and buoyancy.
+    - Properties: viscosity (drag) and buoyancy. Buoyancy offsets gravity and can make the block float upward.
     - Registered like Platform.
 
 11. **Air globals** (complete)
@@ -62,9 +63,10 @@
 
 ## Phase 3: Daily Loop
 
-12. **Daily map**
-    - Store `levels/daily/YYYY-MM-DD.json` in the repo.
-    - The app fetches today's file and shows a fallback message if it is missing.
+12. **Daily map** (loader complete; level content pending)
+    - Store dated level files as `public/levels/daily/YYYY-MM-DD.json`; Vite serves them at `levels/daily/YYYY-MM-DD.json` under the app's base path.
+    - The Daily button fetches the current UTC date's file and shows a message if it is missing, leaving the current game and editor draft intact.
+    - No daily level files are currently supplied.
 
 13. **Scorecard**
     - Generate text plus a canvas image (date, launches, par/result).
@@ -79,5 +81,5 @@
 - More tile types
 - Sound
 - Animations
-- Editor preview of physics
+- In-editor physics preview
 - Par values per level

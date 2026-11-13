@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Squarenaut level",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["grid", "tiles", "start", "goal"],
+  "properties": {
+    "grid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "height": { "type": "integer", "minimum": 1, "maximum": 100 }
+      }
+    },
+    "tiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["x", "y", "typeId"],
+        "properties": {
+          "x": { "type": "integer", "minimum": 0 },
+          "y": { "type": "integer", "minimum": 0 },
+          "typeId": { "enum": ["platform", "water", "hazard"] }
+        }
+      }
+    },
+    "start": { "$ref": "#/$defs/cell" },
+    "goal": { "$ref": "#/$defs/cell" }
+  },
+  "$defs": {
+    "cell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
