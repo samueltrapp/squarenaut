@@ -1,6 +1,6 @@
-import defaultLevelData from '../levels/default.json';
-import { loadLevel, type LevelDefinition } from './level-format';
-import type { Cell, TileInstance } from './tiles';
+import defaultLevelData from "../levels/default.json";
+import { loadLevel, type LevelDefinition } from "./level-format";
+import type { Cell, TileInstance } from "./tiles";
 
 export const defaultLevel: LevelDefinition = loadLevel(defaultLevelData);
 export const GRID_WIDTH = defaultLevel.grid.width;
@@ -29,5 +29,5 @@ export function fitGridToViewport(
 
 export const levelTiles: TileInstance[] = [
   ...defaultLevel.tiles,
-  { ...defaultLevel.goal, typeId: 'goal' },
+  { ...defaultLevel.goal, typeId: "goal" },
 ];

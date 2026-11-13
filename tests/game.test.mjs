@@ -401,14 +401,23 @@ test("scorecard sharing copies its text when native sharing is unavailable", asy
   let copiedText;
   Object.defineProperty(globalThis, "navigator", {
     configurable: true,
-    value: { clipboard: { writeText: async (text) => { copiedText = text; } } },
+    value: {
+      clipboard: {
+        writeText: async (text) => {
+          copiedText = text;
+        },
+      },
+    },
   });
   try {
-    const result = await scorecard.shareScorecard({}, {
-      date: "2026-11-13",
-      launches: 3,
-      par: 2,
-    });
+    const result = await scorecard.shareScorecard(
+      {},
+      {
+        date: "2026-11-13",
+        launches: 3,
+        par: 2,
+      },
+    );
     expect(result).toBe("copied");
     expect(copiedText).toContain("1 over par");
   } finally {
