@@ -15,13 +15,19 @@ async function moduleUrl(path, dependencies = {}) {
 
 const tilesUrl = await moduleUrl("../src/tiles.ts");
 const tiles = await import(tilesUrl);
-const levelData = JSON.parse(await readFile(new URL("../levels/default.json", import.meta.url), "utf8"));
+const levelData = JSON.parse(
+  await readFile(new URL("../levels/default.json", import.meta.url), "utf8"),
+);
 const levelDataUrl = `data:text/javascript;base64,${Buffer.from(
   `export default ${JSON.stringify(levelData)};`,
 ).toString("base64")}`;
 const levelFormatUrl = await moduleUrl("../src/level-format.ts", { "./tiles": tilesUrl });
 const levelFormat = await import(levelFormatUrl);
-const levelSessionUrl = await moduleUrl("../src/level-session.ts", { "./level-format": levelFormatUrl });
+const levelSessionUrl = await moduleUrl("../src/level-session.ts", {
+  "./level-format": levelFormatUrl,
+});
+const scorecardUrl = await moduleUrl("../src/scorecard.ts");
+const scorecard = await import(scorecardUrl);
 const levelUrl = await moduleUrl("../src/level.ts", {
   "../levels/default.json": levelDataUrl,
   "./level-format": levelFormatUrl,
@@ -71,8 +77,17 @@ class Element {
 
 async function createEditor(storage) {
   const ids = [
-    "editor-canvas", "grid-width", "grid-height", "resize-grid", "load-level",
-    "editor-status", "save-level", "load-saved", "export-level", "test-level", "back-to-game",
+    "editor-canvas",
+    "grid-width",
+    "grid-height",
+    "resize-grid",
+    "load-level",
+    "editor-status",
+    "save-level",
+    "load-saved",
+    "export-level",
+    "test-level",
+    "back-to-game",
   ];
   const elements = Object.fromEntries(ids.map((id) => [id, new Element()]));
   const tools = ["platform", "water", "hazard", "start", "goal", "erase"].map((tool) => {
@@ -83,10 +98,24 @@ async function createEditor(storage) {
   });
   const canvas = elements["editor-canvas"];
   canvas.getContext = () => ({
-    setTransform() {}, clearRect() {}, fillRect() {}, beginPath() {}, moveTo() {},
-    lineTo() {}, closePath() {}, fill() {}, stroke() {}, strokeRect() {}, arc() {},
+    setTransform() {},
+    clearRect() {},
+    fillRect() {},
+    beginPath() {},
+    moveTo() {},
+    lineTo() {},
+    closePath() {},
+    fill() {},
+    stroke() {},
+    strokeRect() {},
+    arc() {},
   });
-  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: canvas.width, height: canvas.height });
+  canvas.getBoundingClientRect = () => ({
+    left: 0,
+    top: 0,
+    width: canvas.width,
+    height: canvas.height,
+  });
   canvas.setPointerCapture = () => {};
   const local = new Map();
   globalThis.sessionStorage = {
@@ -104,10 +133,18 @@ async function createEditor(storage) {
     createElement: () => new Element(),
   };
   let destination;
-  globalThis.window = { location: { assign: (url) => { destination = String(url); } } };
+  globalThis.window = {
+    location: {
+      assign: (url) => {
+        destination = String(url);
+      },
+    },
+  };
   await import(`${editorUrl}#${appNumber++}`);
   return {
-    elements, tools, local,
+    elements,
+    tools,
+    local,
     destination: () => destination,
     paint(x, y) {
       canvas.emit("pointerdown", { clientX: x * 48 + 24, clientY: y * 48 + 30, pointerId: 1 });
@@ -116,12 +153,25 @@ async function createEditor(storage) {
   };
 }
 
-async function createApp({ href = "http://localhost/squarenaut/index.html", storage = new Map(), fetchLevel } = {}) {
+async function createApp({
+  href = "http://localhost/squarenaut/index.html",
+  storage = new Map(),
+  fetchLevel,
+} = {}) {
   const elements = Object.fromEntries(
-    ["game", "launch", "cancel", "daily", "launch-count", "game-status", "physics-controls"].map((id) => [
-      id,
-      new Element(),
-    ]),
+    [
+      "game",
+      "launch",
+      "cancel",
+      "daily",
+      "launch-count",
+      "game-status",
+      "physics-controls",
+      "daily-scorecard",
+      "scorecard-text",
+      "scorecard-image",
+      "share-scorecard",
+    ].map((id) => [id, new Element()]),
   );
   let position;
   const context = {
@@ -139,6 +189,7 @@ async function createApp({ href = "http://localhost/squarenaut/index.html", stor
     closePath() {},
     fill() {},
     stroke() {},
+    fillText() {},
   };
   const canvas = elements.game;
   canvas.width = 960;
@@ -153,7 +204,14 @@ async function createApp({ href = "http://localhost/squarenaut/index.html", stor
   globalThis.document = {
     baseURI: href,
     querySelector: (selector) => elements[selector.slice(1)],
-    createElement: () => new Element(),
+    createElement: () => {
+      const scorecardCanvas = new Element();
+      scorecardCanvas.getContext = () => ({ ...context, canvas: scorecardCanvas });
+      scorecardCanvas.toDataURL = () => "data:image/png;base64,c2NvcmVjYXJk";
+      scorecardCanvas.toBlob = (callback) =>
+        callback(new Blob(["scorecard"], { type: "image/png" }));
+      return scorecardCanvas;
+    },
   };
   globalThis.sessionStorage = {
     getItem: (key) => storage.get(key) ?? null,
@@ -161,7 +219,11 @@ async function createApp({ href = "http://localhost/squarenaut/index.html", stor
   };
   globalThis.window = {
     location: { href },
-    history: { replaceState: (_state, _title, url) => { globalThis.window.location.href = String(url); } },
+    history: {
+      replaceState: (_state, _title, url) => {
+        globalThis.window.location.href = String(url);
+      },
+    },
   };
   if (fetchLevel) globalThis.fetch = fetchLevel;
   let nextFrame;
@@ -171,8 +233,9 @@ async function createApp({ href = "http://localhost/squarenaut/index.html", stor
   const source = mainSource
     .replace('import "./style.css";', "")
     .replace('from "./animation"', `from "${animationUrl}"`)
-    .replace("from './level-format'", `from "${levelFormatUrl}"`)
-    .replace("from './level-session'", `from "${levelSessionUrl}"`)
+    .replace(/from ["']\.\/level-format["']/, `from "${levelFormatUrl}"`)
+    .replace(/from ["']\.\/level-session["']/, `from "${levelSessionUrl}"`)
+    .replace(/from ["']\.\/scorecard["']/, `from "${scorecardUrl}"`)
     .replace('from "./map"', `from "${mapUrl}"`)
     .replace('from "./physics"', `from "${physicsUrl}"`)
     .replace('from "./tiles"', `from "${tilesUrl}"`);
@@ -304,7 +367,66 @@ test("level loader validates cells and rejects duplicate occupied tiles", () => 
       ],
     }),
   ).toThrow(/More than one tile/);
-  expect(() => levelFormat.loadLevel({ ...valid, goal: { x: 4, y: 2 } })).toThrow(/inside the grid/);
+  expect(() => levelFormat.loadLevel({ ...valid, goal: { x: 4, y: 2 } })).toThrow(
+    /inside the grid/,
+  );
+});
+
+test("daily par is validated, retained, and reflected in scorecard results", () => {
+  const valid = {
+    grid: { width: 4, height: 3 },
+    start: { x: 0, y: 0 },
+    goal: { x: 3, y: 2 },
+    tiles: [],
+    par: 4,
+  };
+  expect(levelFormat.loadLevel(valid)).toEqual(valid);
+  expect(levelFormat.serializeLevel(levelFormat.loadLevel(valid))).toEqual(valid);
+  expect(() => levelFormat.loadLevel({ ...valid, par: 0 })).toThrow(
+    /Par must be a positive integer/,
+  );
+  expect(scorecard.formatScorecard({ date: "2026-11-13", launches: 2, par: 4 })).toContain(
+    "2 under par",
+  );
+  expect(scorecard.formatScorecard({ date: "2026-11-13", launches: 4, par: 4 })).toContain(
+    "on par",
+  );
+  expect(scorecard.formatScorecard({ date: "2026-11-13", launches: 5, par: 4 })).toContain(
+    "1 over par",
+  );
+});
+
+test("scorecard sharing copies its text when native sharing is unavailable", async () => {
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  let copiedText;
+  Object.defineProperty(globalThis, "navigator", {
+    configurable: true,
+    value: {
+      clipboard: {
+        writeText: async (text) => {
+          copiedText = text;
+        },
+      },
+    },
+  });
+  try {
+    const result = await scorecard.shareScorecard(
+      {},
+      {
+        date: "2026-11-13",
+        launches: 3,
+        par: 2,
+      },
+    );
+    expect(result).toBe("copied");
+    expect(copiedText).toContain("1 over par");
+  } finally {
+    if (originalNavigator) {
+      Object.defineProperty(globalThis, "navigator", originalNavigator);
+    } else {
+      delete globalThis.navigator;
+    }
+  }
 });
 
 test("editor test and daily switching preserve the editor draft", async () => {
@@ -329,7 +451,12 @@ test("editor test and daily switching preserve the editor draft", async () => {
     storage,
     fetchLevel: async (url) => {
       requestedUrl = String(url);
-      return { status: 200, ok: true, headers: new Headers({ "content-type": "application/json" }), json: async () => dailyLevel };
+      return {
+        status: 200,
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => dailyLevel,
+      };
     },
   });
   expect(app.elements["game-status"].textContent).toMatch(/Editor playtest/);
@@ -342,7 +469,9 @@ test("editor test and daily switching preserve the editor draft", async () => {
   expect(app.elements["launch-count"].textContent).toBe("1");
   app.elements.daily.emit("click");
   await new Promise((resolve) => setTimeout(resolve, 0));
-  expect(requestedUrl).toBe(`http://localhost/squarenaut/levels/daily/${new Date().toISOString().slice(0, 10)}.json`);
+  expect(requestedUrl).toBe(
+    `http://localhost/squarenaut/levels/daily/${new Date().toISOString().slice(0, 10)}.json`,
+  );
   expect(app.elements["game-status"].textContent).toMatch(/Daily level/);
   expect(app.elements["launch-count"].textContent).toBe("0");
   expect(app.elements.cancel.disabled).toBe(true);
@@ -382,16 +511,28 @@ test("back to game saves an edited draft and a broken playtest reports an error"
   editor.tools.find((tool) => tool.dataset.tool === "hazard").emit("click");
   editor.paint(0, 0);
   let prevented = false;
-  editor.elements["back-to-game"].emit("click", { preventDefault: () => { prevented = true; } });
+  editor.elements["back-to-game"].emit("click", {
+    preventDefault: () => {
+      prevented = true;
+    },
+  });
   expect(prevented).toBe(false);
-  expect(JSON.parse(storage.get("squarenaut-editor-draft")).tiles)
-    .toContainEqual({ x: 0, y: 0, typeId: "hazard" });
+  expect(JSON.parse(storage.get("squarenaut-editor-draft")).tiles).toContainEqual({
+    x: 0,
+    y: 0,
+    typeId: "hazard",
+  });
 
   storage.set("squarenaut-editor-draft", "{broken");
   const app = await createApp({
     href: "http://localhost/squarenaut/index.html?playtest=1",
     storage,
-    fetchLevel: async () => ({ status: 200, ok: true, headers: new Headers({ "content-type": "application/json" }), json: async () => ({}) }),
+    fetchLevel: async () => ({
+      status: 200,
+      ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({}),
+    }),
   });
   expect(app.elements["game-status"].textContent).toMatch(/Could not load the editor playtest/);
   app.elements.daily.emit("click");
@@ -413,6 +554,38 @@ test("daily reports missing files when a development server returns its HTML fal
   app.elements.daily.emit("click");
   await new Promise((resolve) => setTimeout(resolve, 0));
   expect(app.elements["game-status"].textContent).toMatch(/No daily level is available/);
+});
+
+test("clearing a daily level creates a scorecard with an image and par result", async () => {
+  const dailyLevel = {
+    grid: { width: 30, height: 20 },
+    start: { x: 4, y: 9 },
+    goal: { x: 26, y: 9 },
+    tiles: [],
+    par: 2,
+  };
+  const app = await createApp({
+    fetchLevel: async () => ({
+      status: 200,
+      ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => dailyLevel,
+    }),
+  });
+  app.elements.daily.emit("click");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  app.setSlider("gravity", 0);
+  app.setSlider("launchVelocity", 1200);
+  app.frame(1000);
+  app.elements.launch.emit("click");
+  for (let time = 1016; time <= 2200; time += 16) {
+    app.frame(time);
+    if (!app.elements.launch.disabled) break;
+  }
+  expect(app.elements["game-status"].textContent).toMatch(/Goal reached/);
+  expect(app.elements["daily-scorecard"].hidden).toBe(false);
+  expect(app.elements["scorecard-text"].textContent).toContain("Par 2");
+  expect(app.elements["scorecard-image"].src).toMatch(/^data:image\/png/);
 });
 
 test("grid viewport fits different level sizes without changing canvas dimensions", () => {

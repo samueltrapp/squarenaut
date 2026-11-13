@@ -28,7 +28,12 @@
       }
     },
     "start": { "$ref": "#/$defs/cell" },
-    "goal": { "$ref": "#/$defs/cell" }
+    "goal": { "$ref": "#/$defs/cell" },
+    "par": {
+      "description": "Optional target number of launches for scorecards.",
+      "type": "integer",
+      "minimum": 1
+    }
   },
   "$defs": {
     "cell": {

@@ -10,9 +10,10 @@ Squarenaut is a browser-based physics puzzle built with TypeScript, Vite, and th
 - Connected Platform groups expose Acceleration (−900 to +900 units/s², default 0) and Bounciness. Acceleration changes tangential velocity over time while contact is maintained.
 - Connected Water groups expose Viscosity (velocity drag) and Buoyancy (upward acceleration that offsets gravity).
 - `editor.html` provides a separate level editor with a Test button; its draft survives navigation to the game in session storage. `schemas/level.schema.json` describes the level JSON format, and the game validates loaded levels before use.
-- Daily loads `public/levels/daily/YYYY-MM-DD.json` using the current UTC date. The loader reports missing files; no daily level content is supplied yet.
+- Daily loads `public/levels/daily/YYYY-MM-DD.json` using the current UTC date. Daily wins produce a shareable scorecard; optional level par values are validated and included. No daily level content is supplied yet.
+- `.github/workflows/deploy.yml` runs tests and builds before deploying to GitHub Pages.
 - Tests run with Vitest via `npm test`; `npm run build` type-checks and builds the app.
-- Daily level content, scorecards, and deployment remain planned; see `OUTLINE.md`.
+- Daily level content remains planned; see `OUTLINE.md`.
 
 When an important implementation change alters this status or a planned milestone, update this section and the corresponding progress in `OUTLINE.md`.
 
