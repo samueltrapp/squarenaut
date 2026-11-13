@@ -2,8 +2,9 @@ import "./style.css";
 import { startAnimation } from "./animation";
 import { createMap, GRID_TOP, TILE_SIZE } from "./map";
 import { createPhysicsSimulation } from "./physics";
-import { loadLevel, type LevelDefinition } from './level-format';
-import { readEditorDraft } from './level-session';
+import { loadLevel, type LevelDefinition } from "./level-format";
+import { readEditorDraft } from "./level-session";
+import { drawScorecard, formatScorecard, shareScorecard } from "./scorecard";
 import {
   airType,
   cellKey,
@@ -19,7 +20,11 @@ const cancelButtonElement = document.querySelector<HTMLButtonElement>("#cancel")
 const launchCountElementElement = document.querySelector<HTMLElement>("#launch-count");
 const statusElementElement = document.querySelector<HTMLElement>("#game-status");
 const controlsElementElement = document.querySelector<HTMLElement>("#physics-controls");
-const dailyButtonElement = document.querySelector<HTMLButtonElement>('#daily');
+const dailyButtonElement = document.querySelector<HTMLButtonElement>("#daily");
+const scorecardElement = document.querySelector<HTMLElement>("#daily-scorecard");
+const scorecardTextElement = document.querySelector<HTMLElement>("#scorecard-text");
+const scorecardImageElement = document.querySelector<HTMLImageElement>("#scorecard-image");
+const shareScorecardButtonElement = document.querySelector<HTMLButtonElement>("#share-scorecard");
 
 if (
   !canvasElement ||
@@ -28,7 +33,11 @@ if (
   !launchCountElementElement ||
   !statusElementElement ||
   !controlsElementElement ||
-  !dailyButtonElement
+  !dailyButtonElement ||
+  !scorecardElement ||
+  !scorecardTextElement ||
+  !scorecardImageElement ||
+  !shareScorecardButtonElement
 ) {
   throw new Error("Game interface is incomplete");
 }
@@ -40,27 +49,70 @@ const launchCountElement: HTMLElement = launchCountElementElement;
 const statusElement: HTMLElement = statusElementElement;
 const controlsElement: HTMLElement = controlsElementElement;
 const dailyButton: HTMLButtonElement = dailyButtonElement;
+const scorecardElementContainer: HTMLElement = scorecardElement;
+const scorecardText: HTMLElement = scorecardTextElement;
+const scorecardImage: HTMLImageElement = scorecardImageElement;
+const shareScorecardButton: HTMLButtonElement = shareScorecardButtonElement;
 const canvasContext = canvas.getContext("2d");
 if (!canvasContext) {
   throw new Error("Canvas 2D context is not available");
 }
 const context: CanvasRenderingContext2D = canvasContext;
 let map = createMap(canvas.width, canvas.height);
-let physics = createPhysicsSimulation(map, {
-  launchButton, cancelButton, launchCountElement, statusElement,
-});
 let selectedRegion: TileRegion | undefined;
+let dailyDate: string | undefined;
+let dailyPar: number | undefined;
+let shareableScorecard:
+  | {
+      canvas: HTMLCanvasElement;
+      scorecard: { date: string; launches: number; par?: number };
+    }
+  | undefined;
 
-function showLevel(level: LevelDefinition, message: string): void {
-  map = createMap(canvas.width, canvas.height, level);
-  physics = createPhysicsSimulation(map, {
-    launchButton, cancelButton, launchCountElement, statusElement,
+function showScorecard(date: string, launches: number, par: number | undefined): void {
+  const scorecard = { date, launches, ...(par === undefined ? {} : { par }) };
+  const scorecardCanvas = document.createElement("canvas");
+  scorecardCanvas.width = 720;
+  scorecardCanvas.height = 400;
+  const scorecardContext = scorecardCanvas.getContext("2d");
+  if (!scorecardContext) {
+    throw new Error("Canvas 2D context is not available for the scorecard");
+  }
+  drawScorecard(scorecardContext, scorecard);
+  scorecardText.textContent = formatScorecard(scorecard);
+  scorecardImage.src = scorecardCanvas.toDataURL("image/png");
+  scorecardElementContainer.hidden = false;
+  shareableScorecard = { canvas: scorecardCanvas, scorecard };
+}
+
+function createPhysics(levelMap: typeof map): ReturnType<typeof createPhysicsSimulation> {
+  return createPhysicsSimulation(levelMap, {
+    launchButton,
+    cancelButton,
+    launchCountElement,
+    statusElement,
+    onGoal: (launches) => {
+      if (dailyDate) {
+        showScorecard(dailyDate, launches, dailyPar);
+      }
+    },
   });
+}
+
+let physics = createPhysics(map);
+
+function showLevel(level: LevelDefinition, message: string, date?: string): void {
+  dailyDate = date;
+  dailyPar = date ? level.par : undefined;
+  shareableScorecard = undefined;
+  map = createMap(canvas.width, canvas.height, level);
+  physics = createPhysics(map);
   selectedRegion = undefined;
-  launchCountElement.textContent = '0';
+  launchCountElement.textContent = "0";
   launchButton.disabled = false;
   cancelButton.disabled = true;
   statusElement.textContent = message;
+  scorecardElementContainer.hidden = true;
   createPhysicsControls();
 }
 
@@ -77,18 +129,19 @@ async function loadDaily(): Promise<void> {
     if (!response.ok) {
       throw new Error(`Daily level request failed (${response.status}).`);
     }
-    if (response.headers.get('content-type')?.includes('text/html')) {
+    if (response.headers.get("content-type")?.includes("text/html")) {
       throw new Error(`No daily level is available for ${date}.`);
     }
     const level = loadLevel(await response.json());
-    showLevel(level, `Daily level for ${date}. Ready to launch.`);
+    showLevel(level, `Daily level for ${date}. Ready to launch.`, date);
     const currentUrl = new URL(window.location.href);
-    if (currentUrl.searchParams.has('playtest')) {
-      currentUrl.searchParams.delete('playtest');
-      window.history.replaceState(null, '', currentUrl);
+    if (currentUrl.searchParams.has("playtest")) {
+      currentUrl.searchParams.delete("playtest");
+      window.history.replaceState(null, "", currentUrl);
     }
   } catch (error) {
-    statusElement.textContent = error instanceof Error ? error.message : 'Could not load the daily level.';
+    statusElement.textContent =
+      error instanceof Error ? error.message : "Could not load the daily level.";
   } finally {
     dailyButton.disabled = false;
   }
@@ -172,17 +225,40 @@ function selectMapCell(event: MouseEvent): void {
 
 launchButton.addEventListener("click", () => physics.launch());
 cancelButton.addEventListener("click", () => physics.cancel());
-dailyButton.addEventListener('click', () => void loadDaily());
+dailyButton.addEventListener("click", () => void loadDaily());
+shareScorecardButton.addEventListener("click", async () => {
+  if (!shareableScorecard) {
+    return;
+  }
+  shareScorecardButton.disabled = true;
+  try {
+    const result = await shareScorecard(shareableScorecard.canvas, shareableScorecard.scorecard);
+    statusElement.textContent =
+      result === "shared" ? "Scorecard shared." : "Scorecard text copied to the clipboard.";
+  } catch (error) {
+    statusElement.textContent =
+      error instanceof Error
+        ? `Could not share the scorecard: ${error.message}`
+        : "Could not share the scorecard.";
+  } finally {
+    shareScorecardButton.disabled = false;
+  }
+});
 canvas.addEventListener("click", selectMapCell);
 
 createPhysicsControls();
-if (new URL(window.location.href).searchParams.get('playtest') === '1') {
+if (new URL(window.location.href).searchParams.get("playtest") === "1") {
   try {
-    showLevel(readEditorDraft(sessionStorage), 'Editor playtest. Ready to launch.');
+    showLevel(readEditorDraft(sessionStorage), "Editor playtest. Ready to launch.");
   } catch (error) {
     statusElement.textContent = `Could not load the editor playtest: ${
-      error instanceof Error ? error.message : 'Unknown error.'
+      error instanceof Error ? error.message : "Unknown error."
     }`;
   }
 }
-startAnimation(canvas, context, () => ({ map, physics }), () => selectedRegion);
+startAnimation(
+  canvas,
+  context,
+  () => ({ map, physics }),
+  () => selectedRegion,
+);

@@ -21,13 +21,14 @@ interface PhysicsElements {
   cancelButton: HTMLButtonElement;
   launchCountElement: HTMLElement;
   statusElement: HTMLElement;
+  onGoal?: (launches: number) => void;
 }
 
 export function createPhysicsSimulation(
   map: GameMap,
   elements: PhysicsElements,
 ): PhysicsSimulation {
-  const { launchButton, cancelButton, launchCountElement, statusElement } = elements;
+  const { launchButton, cancelButton, launchCountElement, statusElement, onGoal } = elements;
   const block: PhysicsBlock = {
     x: (map.startCell.x + 0.5) * TILE_SIZE,
     y: GRID_TOP + (map.startCell.y + 1) * TILE_SIZE - 15,
@@ -223,6 +224,7 @@ export function createPhysicsSimulation(
         statusElement.textContent = `Goal reached in ${launches} ${launches === 1 ? "launch" : "launches"}!`;
         launchButton.disabled = false;
         cancelButton.disabled = true;
+        onGoal?.(launches);
         return;
       }
     }

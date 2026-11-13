@@ -1,6 +1,6 @@
 # Squarenaut: Build Outline
 
-**Current state:** Phases 1 and 2 are complete. The editor can playtest a draft in the game, and the Daily button loads dated levels when available without changing the draft.
+**Current state:** Phases 1 and 2 are complete, and phase 3 scorecards and GitHub Pages deployment are implemented. The editor can playtest a draft in the game, and the Daily button loads dated levels when available without changing the draft.
 
 ## Resolved Decisions
 
@@ -68,12 +68,12 @@
     - The Daily button fetches the current UTC date's file and shows a message if it is missing, leaving the current game and editor draft intact.
     - No daily level files are currently supplied.
 
-13. **Scorecard**
-    - Generate text plus a canvas image (date, launches, par/result).
-    - Share via `navigator.share` or clipboard.
+13. **Scorecard** (complete)
+    - Generate text plus a canvas image for daily wins (date, launches, and optional par/result).
+    - Share via `navigator.share` or copy the text to the clipboard.
 
-14. **Deploy**
-    - GitHub Actions workflow that builds Vite and publishes to GitHub Pages.
+14. **Deploy** (workflow complete)
+    - GitHub Actions runs tests and builds Vite, then publishes to GitHub Pages.
 
 ## Phase 4: Backlog
 
@@ -82,4 +82,4 @@
 - Sound
 - Animations
 - In-editor physics preview
-- Par values per level
+- Editor controls for authoring per-level par values
