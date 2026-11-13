@@ -1,0 +1,46 @@
+{
+  "grid": {
+    "width": 30,
+    "height": 20
+  },
+  "start": {
+    "x": 1,
+    "y": 1
+  },
+  "goal": {
+    "x": 17,
+    "y": 9
+  },
+  "tiles": [
+    { "x": 0, "y": 3, "typeId": "platform" },
+    { "x": 1, "y": 3, "typeId": "platform" },
+    { "x": 2, "y": 3, "typeId": "platform" },
+    { "x": 3, "y": 3, "typeId": "platform" },
+    { "x": 4, "y": 3, "typeId": "platform" },
+    { "x": 5, "y": 3, "typeId": "platform" },
+    { "x": 6, "y": 3, "typeId": "platform" },
+    { "x": 8, "y": 10, "typeId": "platform" },
+    { "x": 9, "y": 10, "typeId": "platform" },
+    { "x": 10, "y": 10, "typeId": "platform" },
+    { "x": 11, "y": 10, "typeId": "platform" },
+    { "x": 12, "y": 10, "typeId": "platform" },
+    { "x": 13, "y": 10, "typeId": "platform" },
+    { "x": 14, "y": 10, "typeId": "platform" },
+    { "x": 15, "y": 10, "typeId": "platform" },
+    { "x": 16, "y": 10, "typeId": "platform" },
+    { "x": 17, "y": 10, "typeId": "platform" },
+    { "x": 18, "y": 10, "typeId": "platform" },
+    { "x": 19, "y": 10, "typeId": "platform" },
+    { "x": 2, "y": 5, "typeId": "platform" },
+    { "x": 3, "y": 5, "typeId": "platform" },
+    { "x": 4, "y": 5, "typeId": "platform" },
+    { "x": 6, "y": 5, "typeId": "platform" },
+    { "x": 7, "y": 5, "typeId": "platform" },
+    { "x": 8, "y": 5, "typeId": "platform" },
+    { "x": 11, "y": 6, "typeId": "platform" },
+    { "x": 12, "y": 6, "typeId": "platform" },
+    { "x": 13, "y": 6, "typeId": "platform" },
+    { "x": 9, "y": 9, "typeId": "water" },
+    { "x": 10, "y": 5, "typeId": "hazard" }
+  ]
+}

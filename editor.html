@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Level Editor · Squarenaut</title>
+  </head>
+  <body>
+    <main class="app editor-app">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Build a puzzle</p>
+          <h1>Level editor</h1>
+        </div>
+        <a id="back-to-game" class="header-link" href="./index.html">Back to game</a>
+      </header>
+
+      <section class="editor-panel panel" aria-label="Level editor">
+        <div class="editor-toolbar">
+          <div class="editor-tools" aria-label="Tile palette">
+            <button type="button" class="tool-button is-active" data-tool="platform">Platform</button>
+            <button type="button" class="tool-button" data-tool="water">Water</button>
+            <button type="button" class="tool-button" data-tool="hazard">Hazard</button>
+            <button type="button" class="tool-button" data-tool="start">Start</button>
+            <button type="button" class="tool-button" data-tool="goal">Goal</button>
+            <button type="button" class="tool-button secondary-button" data-tool="erase">Erase</button>
+          </div>
+          <div class="grid-size-controls">
+            <label>Width <input id="grid-width" type="number" min="1" max="100" value="30" /></label>
+            <label>Height <input id="grid-height" type="number" min="1" max="100" value="20" /></label>
+            <button id="resize-grid" type="button" class="secondary-button">Resize grid</button>
+          </div>
+        </div>
+
+        <div class="editor-canvas-frame">
+          <canvas id="editor-canvas" width="960" height="966" aria-label="Level grid"></canvas>
+        </div>
+
+        <div class="editor-footer">
+          <p id="editor-status" role="status" aria-live="polite">
+            Select a tool, then click or drag on the grid.
+          </p>
+          <div class="editor-actions">
+            <button id="test-level" type="button">Test</button>
+            <label class="file-button secondary-button">
+              Load JSON
+              <input id="load-level" type="file" accept="application/json,.json" />
+            </label>
+            <button id="save-level" type="button" class="secondary-button">Save locally</button>
+            <button id="load-saved" type="button" class="secondary-button">Load saved</button>
+            <button id="export-level" type="button">Export JSON</button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/editor.ts"></script>
+  </body>
+</html>
